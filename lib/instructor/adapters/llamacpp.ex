@@ -9,6 +9,8 @@ defmodule Instructor.Adapters.Llamacpp do
   alias Instructor.JSONSchema
   alias Instructor.GBNF
 
+  require Logger
+
   @behaviour Instructor.Adapter
 
   @doc """
@@ -150,7 +152,11 @@ defmodule Instructor.Adapters.Llamacpp do
   end
 
   defp url() do
-    Keyword.get(config(), :api_url, "http://localhost:8080/completion")
+    Logger.info("Building URL")
+
+    url = Keyword.get(config(), :api_url, "http://localhost:8080/completion")
+    Logger.info("URL: #{url}")
+    url
   end
 
   defp chat_template() do
@@ -158,13 +164,19 @@ defmodule Instructor.Adapters.Llamacpp do
   end
 
   defp config() do
+    Logger.info("Building config")
     base_config = Application.get_env(:instructor, :llamacpp, [])
+
+    Logger.info("Base config: #{inspect(base_config)}")
 
     default_config = [
       chat_template: :mistral_instruct,
       api_url: "http://localhost:8080/completion"
     ]
 
-    Keyword.merge(default_config, base_config)
+    config = Keyword.merge(default_config, base_config)
+
+    Logger.info("Final config: #{inspect(config)}")
+    config
   end
 end
