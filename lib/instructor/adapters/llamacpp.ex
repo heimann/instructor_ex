@@ -88,14 +88,6 @@ defmodule Instructor.Adapters.Llamacpp do
     end)
   end
 
-  defp to_openai_streaming_response(chunk) when is_binary(chunk) do
-    %{
-      "choices" => [
-        %{"delta" => %{"tool_calls" => [%{"function" => %{"arguments" => chunk}}]}}
-      ]
-    }
-  end
-
   defp do_chat_completion(prompt, grammar) do
     response =
       Req.post!(url(),
@@ -113,6 +105,14 @@ defmodule Instructor.Adapters.Llamacpp do
       _ ->
         nil
     end
+  end
+
+  defp to_openai_streaming_response(chunk) when is_binary(chunk) do
+    %{
+      "choices" => [
+        %{"delta" => %{"tool_calls" => [%{"function" => %{"arguments" => chunk}}]}}
+      ]
+    }
   end
 
   defp to_openai_response(params) do
