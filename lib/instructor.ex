@@ -436,14 +436,22 @@ defmodule Instructor do
 
     Logger.info("model: #{inspect(model, pretty: true)}")
 
-
     with {:ok, raw_response, params} <- do_adapter_chat_completion(params, config),
          {%Ecto.Changeset{valid?: true} = changeset, raw_response} <-
            {cast_all(model, params), raw_response},
          {%Ecto.Changeset{valid?: true} = changeset, _raw_response} <-
            {call_validate(response_model, changeset, validation_context), raw_response} do
       Logger.info("Call completed.")
-      {:ok, %{response: changeset |> Ecto.Changeset.apply_changes(), raw_response: raw_response}}
+
+      {:ok,
+       %{
+         response: changeset |> Ecto.Changeset.apply_changes(),
+         metadata: %{
+           id: raw_response.body["id"],
+           model: raw_response.body["model"],
+           usage: raw_response.body["usage"]
+         }
+       }}
     else
       {%Ecto.Changeset{} = changeset, raw_response} ->
         if max_retries > 0 do
