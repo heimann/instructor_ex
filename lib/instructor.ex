@@ -442,6 +442,7 @@ defmodule Instructor do
            {cast_all(model, params), raw_response},
          {%Ecto.Changeset{valid?: true} = changeset, _raw_response} <-
            {call_validate(response_model, changeset, validation_context), raw_response} do
+      Logger.info("Call completed.")
       {:ok, %{response: changeset |> Ecto.Changeset.apply_changes(), raw_response: raw_response}}
     else
       {%Ecto.Changeset{} = changeset, raw_response} ->
