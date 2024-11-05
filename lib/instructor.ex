@@ -415,11 +415,18 @@ defmodule Instructor do
     end)
   end
 
+  defp peel_off_return_provider_data(params) do
+    return_provider_data = Keyword.get(params, :return_provider_data, false)
+    {_, params} = Keyword.pop(params, :return_provider_data)
+    {params, return_provider_data}
+  end
+
   defp do_chat_completion(response_model, params, config) do
     validation_context = Keyword.get(params, :validation_context, %{})
     max_retries = Keyword.get(params, :max_retries)
     mode = Keyword.get(params, :mode, :tools)
     params = params_for_mode(mode, response_model, params)
+    {params, return_provider_data} = peel_off_return_provider_data(params)
 
     model =
       if is_ecto_schema(response_model) do
@@ -433,7 +440,16 @@ defmodule Instructor do
            {cast_all(model, params), raw_response},
          {%Ecto.Changeset{valid?: true} = changeset, _raw_response} <-
            {call_validate(response_model, changeset, validation_context), raw_response} do
-      {:ok, changeset |> Ecto.Changeset.apply_changes()}
+      result = Ecto.Changeset.apply_changes(changeset)
+
+      case return_provider_data do
+        false ->
+          {:ok, result}
+
+        keys ->
+          provider_data = Map.take(raw_response.body, Enum.map(keys, &to_string/1))
+          {:ok, %{response: result, provider_data: provider_data}}
+      end
     else
       {%Ecto.Changeset{} = changeset, raw_response} ->
         if max_retries > 0 do
