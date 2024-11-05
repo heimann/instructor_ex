@@ -8,14 +8,19 @@ defmodule Instructor.Adapters.OpenAI do
   alias Instructor.JSONSchema
   alias Instructor.SSEStreamParser
 
+  require Logger
+
   @impl true
   def chat_completion(params, user_config \\ nil) do
+    Logger.info("In OpenAI chat_completion with params: #{inspect(params)}")
+
     config = config(user_config)
 
     # Peel off instructor only parameters
     {_, params} = Keyword.pop(params, :response_model)
     {_, params} = Keyword.pop(params, :validation_context)
     {_, params} = Keyword.pop(params, :max_retries)
+    {_, params} = Keyword.pop(params, :return_provider_data)
     {mode, params} = Keyword.pop(params, :mode)
     stream = Keyword.get(params, :stream, false)
     params = Enum.into(params, %{})
