@@ -443,15 +443,25 @@ defmodule Instructor do
            {call_validate(response_model, changeset, validation_context), raw_response} do
       Logger.info("Call completed.")
 
-      {:ok,
-       %{
-         response: changeset |> Ecto.Changeset.apply_changes(),
-         metadata: %{
-           id: raw_response.body["id"],
-           model: raw_response.body["model"],
-           usage: raw_response.body["usage"]
-         }
-       }}
+      res = changeset |> Ecto.Changeset.apply_changes()
+
+      if Map.has_key?(params, :return_provider_data) do
+        provider_data = raw_response.body
+
+        filtered_provider_data =
+          params.return_provider_data
+          |> Enum.reduce(%{}, fn key, acc ->
+            Map.put(acc, key, provider_data[Atom.to_string(key)])
+          end)
+
+        {:ok,
+         %{
+           response: res,
+           provider_data: filtered_provider_data
+         }}
+      else
+        {:ok, res}
+      end
     else
       {%Ecto.Changeset{} = changeset, raw_response} ->
         if max_retries > 0 do
