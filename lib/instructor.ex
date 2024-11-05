@@ -416,10 +416,16 @@ defmodule Instructor do
   end
 
   defp do_chat_completion(response_model, params, config) do
+    Logger.info("Hello from instructor")
+    Logger.info("Doing chat completion")
     validation_context = Keyword.get(params, :validation_context, %{})
+    Logger.info("validation_context: #{inspect(validation_context, pretty: true)}")
     max_retries = Keyword.get(params, :max_retries)
+    Logger.info("max_retries: #{inspect(max_retries, pretty: true)}")
     mode = Keyword.get(params, :mode, :tools)
+    Logger.info("mode: #{inspect(mode, pretty: true)}")
     params = params_for_mode(mode, response_model, params)
+    Logger.info("params: #{inspect(params, pretty: true)}")
 
     model =
       if is_ecto_schema(response_model) do
@@ -427,6 +433,9 @@ defmodule Instructor do
       else
         {%{}, response_model}
       end
+
+    Logger.info("model: #{inspect(model, pretty: true)}")
+
 
     with {:ok, raw_response, params} <- do_adapter_chat_completion(params, config),
          {%Ecto.Changeset{valid?: true} = changeset, raw_response} <-
