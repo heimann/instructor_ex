@@ -415,6 +415,12 @@ defmodule Instructor do
     end)
   end
 
+  defp peel_off_return_provider_data(params) do
+    return_provider_data = Keyword.get(params, :return_provider_data, false)
+    {_, params} = Keyword.pop(params, :return_provider_data)
+    {params, return_provider_data}
+  end
+
   defp do_chat_completion(response_model, params, config) do
     Logger.info("Hello from instructor")
     Logger.info("Doing chat completion")
@@ -426,6 +432,7 @@ defmodule Instructor do
     Logger.info("mode: #{inspect(mode, pretty: true)}")
     params = params_for_mode(mode, response_model, params)
     Logger.info("params: #{inspect(params, pretty: true)}")
+    {params, return_provider_data} = peel_off_return_provider_data(params)
 
     model =
       if is_ecto_schema(response_model) do
@@ -445,11 +452,13 @@ defmodule Instructor do
 
       res = changeset |> Ecto.Changeset.apply_changes()
 
-      if Map.has_key?(params, :return_provider_data) do
+      if return_provider_data do
+        Logger.info("Returning provider data.")
+        Logger.info("Provider data: #{inspect(raw_response.body, pretty: true)}")
         provider_data = raw_response.body
 
         filtered_provider_data =
-          params.return_provider_data
+          return_provider_data
           |> Enum.reduce(%{}, fn key, acc ->
             Map.put(acc, key, provider_data[Atom.to_string(key)])
           end)

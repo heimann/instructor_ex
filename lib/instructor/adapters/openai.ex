@@ -20,7 +20,6 @@ defmodule Instructor.Adapters.OpenAI do
     {_, params} = Keyword.pop(params, :response_model)
     {_, params} = Keyword.pop(params, :validation_context)
     {_, params} = Keyword.pop(params, :max_retries)
-    {_, params} = Keyword.pop(params, :return_provider_data)
     {mode, params} = Keyword.pop(params, :mode)
     stream = Keyword.get(params, :stream, false)
     params = Enum.into(params, %{})
