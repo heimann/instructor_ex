@@ -447,6 +447,7 @@ defmodule Instructor do
           {:ok, result}
 
         keys ->
+          Logger.debug("provider_data: #{inspect(raw_response.body, pretty: true)}")
           provider_data = Map.take(raw_response.body, Enum.map(keys, &to_string/1))
           {:ok, %{response: result, provider_data: provider_data}}
       end
